@@ -116,7 +116,7 @@ class Agent(object):
 
                 observations = np.split(observation, 4, axis=2)
 
-                # if first action then remove last frame and add predicted frame to the start
+                # if exploring first action then remove last frame and add predicted frame to the start
                 # if exploring subsequent actions remove the previous prediction (first frame) and replace with new prediction
                 if actions_explored == 0:
                     observations.pop()
@@ -126,7 +126,6 @@ class Agent(object):
                     observations.insert(0,predicted_next)
 
                 stacked_frames = np.concatenate(observations,axis=2)
-
                 new_state = np.array([stacked_frames], copy=False, dtype=np.float32)
 
                 # Get Q values for predicted state
@@ -145,7 +144,6 @@ class Agent(object):
             
             # Take the action which lead to the highest aggregated q
             action_to_take = np.argmax(aggregated_qs)
-            print(action_to_take)
 
         return action_to_take
 

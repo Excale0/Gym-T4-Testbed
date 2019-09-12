@@ -26,7 +26,7 @@ if __name__ == '__main__':
         frame_queue = deque(maxlen=4)
 
         observation = preprocess_frame(observation)
-        for i in range(4):
+        for j in range(4):
             frame_queue.append(observation)
         observation = np.concatenate(frame_queue, axis=2)
 
@@ -47,20 +47,17 @@ if __name__ == '__main__':
                 agent.store_transition(observation, action,
                                      reward, observation_, int(done))
                 agent.learn()
-            else:
-                env.render()
+
             observation = observation_
 
         scores.append(score)
 
         avg_score = np.mean(scores[-100:])
-        print('episode: ', i,'score: ', score,
-             ' average score %.3f' % avg_score,
-            'epsilon %.2f' % agent.epsilon, 'steps', n_steps)
+        print('episode: ', i,'score: ', score, ' average score %.3f' % avg_score, 'epsilon %.2f' % agent.epsilon, 'steps', n_steps)
+        
         if avg_score > best_score:
             agent.save_models()
-            print('avg score %.2f better than best score %.2f, saving model' % (
-                  avg_score, best_score))
+            print('avg score %.2f better than best score %.2f, saving model' % (avg_score, best_score))
             best_score = avg_score
 
         eps_history.append(agent.epsilon)
