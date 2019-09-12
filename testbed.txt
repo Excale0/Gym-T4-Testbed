@@ -1,5 +1,0 @@
-/configs/Pong/config_dqn
-/configs/Pong/config_double_dqn
-/configs/Pong/config_dueling_dqn
-/configs/Pong/config_pg
-#

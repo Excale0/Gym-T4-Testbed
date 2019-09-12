@@ -26,3 +26,11 @@ def preprocess_frame_dqn(frame):
     # converted_obs = np.pad(converted_obs,((0,0),(0,24),(0,0)), 'constant')
     converted_obs = np.expand_dims(converted_obs, axis=2)
     return converted_obs/255.
+    
+def preprocess_frame_bw_next_state(frame):
+    converted_obs = Image.fromarray(frame, 'RGB')
+    converted_obs = converted_obs.convert('L')  # to gray
+    converted_obs = converted_obs.crop((0,0,80,104))
+    converted_obs = np.array(converted_obs).astype('float')
+    return converted_obs/255.
+

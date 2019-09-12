@@ -2,6 +2,8 @@ from keras.layers import Input, Concatenate, Conv2D, Flatten, Dense, Conv2DTrans
 from keras.models import Model
 import keras.backend as K
 from keras.optimizers import Adam
+from utils import encode_action, preprocess_frame_bw_next_state
+import numpy as np
 
 INPUT_DIM = (104,104,12) # 4 stacked frames
 Z_DIM = 32
@@ -19,7 +21,7 @@ def convert_to_sigma(z_log_var):
     return K.exp(z_log_var / 2)
 
 class CVAE():
-    def __init__(self, action_dim=None):
+    def __init__(self, action_dim):
         self.input_dim = INPUT_DIM
         self.z_dim = Z_DIM
         self.action_dim = action_dim
@@ -113,7 +115,7 @@ class CVAE():
         opti = Adam(lr=LEARNING_RATE)
         vae_full.compile(optimizer=opti, loss = vae_loss,  metrics = [vae_r_loss])
 
-        print(vae_full.summary())
+        # print(vae_full.summary())
         return (vae_full)
     
     def train(self, obs, action=None, next_frame=None):
@@ -143,4 +145,16 @@ class CVAE():
     
     def print_layer_shapes(self):
         self.model.summary()
-        
+    
+    def generate_output_states(self,input_state):
+        next_states = []
+        # Generating next states states using autoencoder
+        for i in range(self.action_dim):
+            ohe_action = encode_action(self.action_dim, i)
+            ohe_action = np.expand_dims(ohe_action, axis=0)     
+
+            predicted_next = self.predict(input_state, ohe_action)
+            predicted_next = (predicted_next[0,:,:,:]*255.).astype(np.uint8)
+            next_states.append(preprocess_frame_bw_next_state(predicted_next))
+
+        return np.stack(next_states,axis=2)
