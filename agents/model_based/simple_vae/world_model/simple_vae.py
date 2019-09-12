@@ -1,9 +1,11 @@
-from keras.layers import Input, Concatenate, Conv2D, Flatten, Dense, Conv2DTranspose, Lambda, Reshape, multiply, ZeroPadding2D, ZeroPadding3D
+from keras.layers import Input, Concatenate, Conv2D, Flatten, Dense, Conv2DTranspose, Lambda, Reshape, multiply, ZeroPadding2D
 from keras.models import Model
 import keras.backend as K
 from keras.optimizers import Adam
-from utils import encode_action, preprocess_frame_bw_next_state
 import numpy as np
+import sys,os
+sys.path.insert(1,os.path.join('../'))
+from utils import encode_action, preprocess_frame_bw_next_state
 
 INPUT_DIM = (104,104,12) # 4 stacked frames
 Z_DIM = 32

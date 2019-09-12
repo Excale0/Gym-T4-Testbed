@@ -75,7 +75,7 @@ if __name__ == "__main__":
   parser.add_argument('--N',default = 100, help='number of episodes to use to train')
 #   parser.add_argument('--new_model', action='store_true', help='start a new model from scratch?')
 #   parser.add_argument('--epochs', default = 10, help='number of epochs to train for')
-  parser.add_argument('--env_name', type=str, help='name of environment', default="Breakout-v0")
+  parser.add_argument('--env_name', type=str, help='name of environment', default="Pong-v0")
   args = parser.parse_args()
   
   main(args)
