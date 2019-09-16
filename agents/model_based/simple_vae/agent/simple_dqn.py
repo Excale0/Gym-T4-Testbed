@@ -13,7 +13,7 @@ from world_model.load_world_model import load_world_model
 from utils import encode_action
 from collections import deque
 
-ENV_NAME = 'Pong-v0'
+ENV_NAME = 'PongDeterministic-v4'
 
 
 class ReplayBuffer(object):
@@ -67,8 +67,8 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims):
 class Agent(object):
     def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, replace,
                  input_dims, eps_dec=0.996,  eps_min=0.01,
-                 mem_size=1000000, q_eval_fname='q_eval.h5',
-                 q_target_fname='q_next.h5'):
+                 mem_size=1000000, q_eval_fname='Pong_q_network.h5',
+                 q_target_fname='Pong_q_next.h5'):
         self.action_space = [i for i in range(n_actions)]
         self.gamma = gamma
         self.epsilon = epsilon
@@ -92,6 +92,16 @@ class Agent(object):
         self.memory.store_transition(state, action, reward, new_state, done)
 
     def choose_action(self, observation):
+        if np.random.random() < self.epsilon:
+            action = np.random.choice(self.action_space)
+        else:
+            state = np.array([observation], copy=False, dtype=np.float32)            
+            policy = self.q_eval.predict(state)
+            action = np.argmax(policy)
+
+        return action
+
+    def choose_action_aggregated(self, observation):
         if np.random.random() < self.epsilon:
             action_to_take = np.random.choice(self.action_space)
         else:
@@ -171,11 +181,13 @@ class Agent(object):
             self.learn_step += 1
 
     def save_models(self):
-        self.q_eval.save(self.q_eval_model_file)
-        self.q_next.save(self.q_target_model_file)
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        self.q_eval.save(os.path.join(dir_path, self.q_eval_model_file))
+        self.q_next.save(os.path.join(dir_path, self.q_target_model_file))
         print('... saving models ...')
 
     def load_models(self):
-        self.q_eval = load_model(self.q_eval_model_file)
-        self.q_nexdt = load_model(self.q_target_model_file)
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+        self.q_eval = load_model(os.path.join(dir_path, self.q_eval_model_file))
+        self.q_nexdt = load_model(os.path.join(dir_path, self.q_target_model_file))
         print('... loading models ...')

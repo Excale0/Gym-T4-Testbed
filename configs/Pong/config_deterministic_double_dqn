@@ -1,7 +1,6 @@
 {
-  "_comment": "DQN (and, to an extend, DoubleDQN) is more stable and learns faster when updating target network after every CartPole episode",
   "algorithm": "DQN",
-  "environment": "Pong-v0",
+  "environment": "PongDeterministic-v4",
 
   "steps": 2000000,
   "memory_size": 100000,

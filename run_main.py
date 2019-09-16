@@ -56,6 +56,10 @@ if __name__ == "__main__":
         import utils.preprocessing.Pong_Preprocess as Preprocess
         MODEL_FILENAME = MODEL_FILENAME + "Pong"
         print('Pong works')
+    elif config['environment'] == 'PongDeterministic-v4':
+        import utils.preprocessing.Pong_Preprocess as Preprocess
+        MODEL_FILENAME = MODEL_FILENAME + "PongDeterministic"
+        print('Pong Deterministic works')
     elif config['environment'] == 'SpaceInvaders-v0':
         import utils.preprocessing.SpaceInvaders_Preprocess as Preprocess
         MODEL_FILENAME = MODEL_FILENAME + "SpaceInvaders"
@@ -108,13 +112,13 @@ if __name__ == "__main__":
         # create memory
         memory = Memory(config['memory_size'], state_space)
         # set path for output data
-        PATH = PATH + '/Gym-T4-Testbed/output/DQN/'
+        PATH = PATH + '/output/DQN/'
         print('DQN works')
     elif config['algorithm'] == 'DoubleDQN':
         from agents.image_input.Double_DQN_Brain import Learning
         from agents.memory.Memory import RandomBatchMemory as Memory
         memory = Memory(config['memory_size'], state_space)
-        PATH = PATH + '/Gym-T4-Testbed/output/DoubleDQN/'
+        PATH = PATH + '/output/DoubleDQN/'
         print('Double works')
     elif config['algorithm'] == 'DuelingDQN':
         from agents.image_input.Dueling_Brain import Learning
