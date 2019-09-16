@@ -15,18 +15,17 @@ print(correct.shape)
 agent = StateAgent(6,'Pong-v0')
 agent.set_weights(weights_path)
 
-i = 5
+correct_count = 0.0
+total_episodes = 100
 
-current_next = next_states[i]
-current_correct = correct[i]
+for i in range(total_episodes):
+    current_next = next_states[i]
+    current_correct = correct[i]
+    current_correct = np.expand_dims(current_correct,axis=0)
+    current_next = np.expand_dims(current_next,axis=0)
 
-cv2.imwrite("testimg.jpg",current_next[:,:,1]*255.)
-print(current_correct)
+    prediction = agent.predict(current_next)
+    if np.argmax(prediction[0]) == np.argmax(current_correct):
+        correct_count+=1
 
-current_correct = np.expand_dims(current_correct,axis=0)
-current_next = np.expand_dims(current_next,axis=0)
-
-prediction = agent.predict(current_next)
-print(prediction.shape)
-print(prediction)
-
+print(correct_count/total_episodes)

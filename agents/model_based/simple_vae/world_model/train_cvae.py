@@ -6,7 +6,7 @@ import os
 import gym
 
 DIR_NAME = './data/world_models/'
-M=100
+M=200
 
 SCREEN_SIZE_X = 104
 SCREEN_SIZE_Y = 104

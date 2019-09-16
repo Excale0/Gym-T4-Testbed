@@ -7,11 +7,14 @@ import imageio
 from generate_gif import create_gif
 
 
+def diff(original,predicted):
+    return abs(original - predicted)
+    
 IMAGE_FOLDER = './images/'
 
 env_name = sys.argv[1]
 
-data_file = './data/world_models/' + 'rollout_' + env_name + '/rollout-190.npz'
+data_file = './data/world_models/' + 'rollout_' + env_name + '/rollout-100.npz'
 
 obs_data = np.load(data_file)['obs']
 action_data = np.load(data_file)['actions']
@@ -39,8 +42,11 @@ for i in range(len(obs_data)):
     # print(predicted_image.shape)
 
     triple = np.concatenate(
-        (predicted_image, ground_truth), axis=1)
+        (predicted_image, ground_truth, diff(predicted_image, ground_truth)), axis=1)
+    
+    if i == 50:
+        cv2.imwrite("./{}_50.jpg".format(env_name), triple)
 
     cv2.imwrite(IMAGE_FOLDER + '%03d.png' % i, triple)
 
-create_gif()
+create_gif(env_name)

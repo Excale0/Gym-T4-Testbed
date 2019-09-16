@@ -6,6 +6,7 @@ from utils import preprocess_frame_dqn
 
 if __name__ == '__main__':
     env = gym.make('PongDeterministic-v4')
+    env.seed(0)
 
     num_games = 8000
     load_checkpoint = False

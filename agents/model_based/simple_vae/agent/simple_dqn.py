@@ -107,53 +107,54 @@ class Agent(object):
         else:
             observations = deque(maxlen=4)
             state = np.array([observation], copy=False, dtype=np.float32)
-            aggregated_qs = np.zeros(len(self.action_space), dtype=np.float32)
+            # aggregated_qs = np.zeros(len(self.action_space), dtype=np.float32)
 
             # Get Q values for current state
 
             policy = self.q_eval.predict(state)
+            action_to_take = np.argmax(policy)
 
-            actions_explored = 0
+            # actions_explored = 0
             # Predict the next state for every action
-            for action in self.action_space:
+            # for action in self.action_space:
 
-                # need to one hot encode and expand dims for world model prediction
-                ohe_action = encode_action(len(self.action_space), action)
-                ohe_action = np.expand_dims(ohe_action, axis=0)     
+            #     # need to one hot encode and expand dims for world model prediction
+            #     ohe_action = encode_action(len(self.action_space), action)
+            #     ohe_action = np.expand_dims(ohe_action, axis=0)     
 
-                predicted_next = self.world_model.predict(state, ohe_action)
-                predicted_next = predicted_next[0,:,:,:]
+            #     predicted_next = self.world_model.predict(state, ohe_action)
+            #     predicted_next = predicted_next[0,:,:,:]
 
-                observations = np.split(observation, 4, axis=2)
+            #     observations = np.split(observation, 4, axis=2)
 
-                # if exploring first action then remove last frame and add predicted frame to the start
-                # if exploring subsequent actions remove the previous prediction (first frame) and replace with new prediction
-                if actions_explored == 0:
-                    observations.pop()
-                    observations.insert(0,predicted_next)
-                else:
-                    observations.pop(0)
-                    observations.insert(0,predicted_next)
+            #     # if exploring first action then remove last frame and add predicted frame to the start
+            #     # if exploring subsequent actions remove the previous prediction (first frame) and replace with new prediction
+            #     if actions_explored == 0:
+            #         observations.pop()
+            #         observations.insert(0,predicted_next)
+            #     else:
+            #         observations.pop(0)
+            #         observations.insert(0,predicted_next)
 
-                stacked_frames = np.concatenate(observations,axis=2)
-                new_state = np.array([stacked_frames], copy=False, dtype=np.float32)
+            #     stacked_frames = np.concatenate(observations,axis=2)
+            #     new_state = np.array([stacked_frames], copy=False, dtype=np.float32)
 
-                # Get Q values for predicted state
-                next_policy = self.q_eval.predict(new_state)
+            #     # Get Q values for predicted state
+            #     next_policy = self.q_eval.predict(new_state)
 
-                # Aggregate Q values
-                aggregated_policy = policy + self.gamma*next_policy
+            #     # Aggregate Q values
+            #     aggregated_policy = policy + self.gamma*next_policy
 
-                # Find the highest q value from policy
-                max_q = np.max(aggregated_policy)
+            #     # Find the highest q value from policy
+            #     max_q = np.max(aggregated_policy)
 
-                # Store as max aggregated q for taking action
-                aggregated_qs[action] = max_q
+            #     # Store as max aggregated q for taking action
+            #     aggregated_qs[action] = max_q
 
-                actions_explored += 1
+            #     actions_explored += 1
             
-            # Take the action which lead to the highest aggregated q
-            action_to_take = np.argmax(aggregated_qs)
+            # # Take the action which lead to the highest aggregated q
+            # action_to_take = np.argmax(aggregated_qs)
 
         return action_to_take
 

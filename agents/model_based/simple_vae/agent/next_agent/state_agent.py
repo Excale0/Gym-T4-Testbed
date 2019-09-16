@@ -24,14 +24,16 @@ class StateAgent():
         conv_1 = Conv2D(filters=32, kernel_size=5, strides=2, activation='relu')(frame_input)
         conv_2 = Conv2D(filters=64, kernel_size=5, strides=2, activation='relu')(conv_1)
         conv_3 = Conv2D(filters=64, kernel_size=5, strides=2, activation='relu')(conv_2)
-        flatten = Flatten(name='flatten')(conv_3)
-        dense = Dense(256)(flatten)
-        output = Dense(action_dim, activation="sigmoid")(dense)
+        conv_4 = Conv2D(filters=128, kernel_size=5, strides=2, activation='relu')(conv_3)
+        flatten = Flatten(name='flatten')(conv_4)
+        dense_1 = Dense(512)(flatten)
+        dense_3 = Dense(256,activation='relu')(dense_1)
+        output = Dense(action_dim,activation='sigmoid')(dense_3)
 
-        optimizer = Adam(lr=0.0003)
+        optimizer = Adam(lr=0.0001)
         model = Model(frame_input, output)
 
-        model.compile(optimizer=optimizer, loss = losses.binary_crossentropy)
+        model.compile(optimizer=optimizer, loss = losses.mean_squared_error, metrics=['accuracy'])
         model.summary()
         return model
     
@@ -39,8 +41,8 @@ class StateAgent():
         self.model.fit(x=input_states,
                        y=output_label,
                        shuffle=True,
-                       epochs=32,
-                       batch_size=32)
+                       epochs=8,
+                       batch_size=8)
     
     def set_weights(self, filepath):
         self.model.load_weights(filepath)

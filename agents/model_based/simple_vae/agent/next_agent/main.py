@@ -49,9 +49,6 @@ def import_data(episodes, action_dim, dir_name):
 
     return [next_states,correct_state]
 
-    
-
-
 
 def main(args):
     dir_name = "./data/rollout_" + args.env_name

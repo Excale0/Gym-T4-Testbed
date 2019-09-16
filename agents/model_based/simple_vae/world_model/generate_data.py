@@ -31,6 +31,7 @@ def main(args):
         print("Generating data for env {}".format(current_env_name))
 
         env = gym.make(current_env_name) # Create the environment
+        env.seed(0)
 
         s = 0
         
@@ -101,7 +102,7 @@ if __name__ == "__main__":
     parser.add_argument('--env_name', type=str, help='name of environment', default="Pong-v0")
     parser.add_argument('--total_episodes', type=int, default=200,
                         help='total number of episodes to generate per worker')
-    parser.add_argument('--time_steps', type=int, default=100,
+    parser.add_argument('--time_steps', type=int, default=200,
                         help='how many timesteps at start of episode?')
     parser.add_argument('--render', default=0, type=int,
                         help='render the env as data is generated')
