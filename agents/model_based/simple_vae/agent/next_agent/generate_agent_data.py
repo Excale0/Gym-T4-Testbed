@@ -14,7 +14,8 @@ import argparse
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from world_model.load_world_model import load_world_model
-from utils import preprocess_frame, encode_action
+from utils import preprocess_frame, encode_action, preprocess_frame_dqn
+from simple_dqn import Agent
 
 ROLLOUT_DIR = './data/'
 
@@ -37,7 +38,9 @@ def generate_agent_episodes(args):
         env = gym.make(current_env_name) # Create the environment
 
         # First load the agent and the predictive auto encoder with their weights
-        # agent().load_weights(x.h5)
+        agent = Agent(gamma=0.99, epsilon=0.0, alpha=0.0001,
+                input_dims=(104,80,4), n_actions=6, mem_size=25000,
+                eps_min=0.0, batch_size=32, replace=1000, eps_dec=1e-5)
         predictor = load_world_model(current_env_name,env.action_space.n)
 
         s = 0
@@ -48,6 +51,7 @@ def generate_agent_episodes(args):
 
             observation = env.reset()
             frame_queue = deque(maxlen=4)
+            dqn_queue = deque(maxlen=4)
             
             t = 0
 
@@ -56,25 +60,33 @@ def generate_agent_episodes(args):
 
             while t < time_steps:  
                 # Get agent to sample action
-                action = env.action_space.sample()
+                
                 
                 # convert image to greyscale, downsize
                 
                 converted_obs = preprocess_frame(observation)
+                converted_obs_dqn = preprocess_frame_dqn(observation)
                 
                 if t == 0:
                     for i in range(4):
                         frame_queue.append(converted_obs)
+                        dqn_queue.append(converted_obs_dqn)
                 else:
                     frame_queue.pop()
+                    dqn_queue.pop()
                     frame_queue.appendleft(converted_obs)
+                    dqn_queue.appendleft(converted_obs_dqn)
                 
                 observation_states = np.concatenate(frame_queue, axis=2)
+                dqn_states = np.stack(dqn_queue,axis=2)
                 next_states = predictor.generate_output_states(np.expand_dims(observation_states, axis=0))
                 next_state_sequence.append(next_states)
+                action = agent.choose_action(dqn_states)
                 correct_state_sequence.append(encode_action(env.action_space.n,action))
 
-                observation, _, _, _ = env.step(action) # Take a random action  
+                observation, reward, done, _ = env.step(action) # Take a random action  
+                if done:
+                    print(reward)
                 t = t + 1
 
             print("Episode {} finished after {} timesteps".format(s, t))
