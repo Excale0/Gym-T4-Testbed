@@ -8,7 +8,7 @@ def action_space_dimension(env_name):
     return gym.make(env_name).action_space.n
 
 def import_data(episodes, action_dim, dir_name):
-    time_steps = 100
+    time_steps = 900
     x = 80
     filelist = os.listdir(dir_name)
     length_filelist = len(filelist)
@@ -31,6 +31,7 @@ def import_data(episodes, action_dim, dir_name):
             next_data = np.load(dir_name + file)['next']
 
 
+
             next_states[idx:(idx + time_steps), :, :, :] = next_data
             correct_state[idx:(idx + time_steps), :] = action_data
 
@@ -51,13 +52,12 @@ def import_data(episodes, action_dim, dir_name):
 
 
 def main(args):
-    dir_name = "./data/rollout_" + args.env_name
+    dir_name = "./data/rollout_" + args.env_name +"/"
     # new_model = args.new_model
     episodes = int(args.N)
     action_dim = action_space_dimension(args.env_name)
 
     [next_states, correct_state] = import_data(episodes,action_dim,dir_name)
-
     try:
         agent = StateAgent(action_dim,args.env_name)
     except:
@@ -69,10 +69,10 @@ def main(args):
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description=('Train agent'))
-  parser.add_argument('--N',default = 100, help='number of episodes to use to train')
+  parser.add_argument('--N',default = 40, help='number of episodes to use to train')
 #   parser.add_argument('--new_model', action='store_true', help='start a new model from scratch?')
 #   parser.add_argument('--epochs', default = 10, help='number of epochs to train for')
-  parser.add_argument('--env_name', type=str, help='name of environment', default="Pong-v0")
+  parser.add_argument('--env_name', type=str, help='name of environment', default="PongDeterministic-v4")
   args = parser.parse_args()
   
   main(args)

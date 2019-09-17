@@ -21,6 +21,8 @@ ROLLOUT_DIR = './data/'
 
 def generate_agent_episodes(args):
     full_path = ROLLOUT_DIR + 'rollout_' + args.env_name
+    if args.informed:
+        full_path = ROLLOUT_DIR + 'rollout_informed_' + args.env_name
     
     if not os.path.exists(full_path):
         os.umask(0o000)
@@ -36,11 +38,13 @@ def generate_agent_episodes(args):
         print("Generating data for env {}".format(current_env_name))
 
         env = gym.make(current_env_name) # Create the environment
+        env.seed(0)
 
         # First load the agent and the predictive auto encoder with their weights
         agent = Agent(gamma=0.99, epsilon=0.0, alpha=0.0001,
                 input_dims=(104,80,4), n_actions=6, mem_size=25000,
                 eps_min=0.0, batch_size=32, replace=1000, eps_dec=1e-5)
+        agent.load_models()
         predictor = load_world_model(current_env_name,env.action_space.n)
 
         s = 0
@@ -57,7 +61,7 @@ def generate_agent_episodes(args):
 
             next_state_sequence = []
             correct_state_sequence = []
-
+            total_reward = 0
             while t < time_steps:  
                 # Get agent to sample action
                 
@@ -78,19 +82,17 @@ def generate_agent_episodes(args):
                     dqn_queue.appendleft(converted_obs_dqn)
                 
                 observation_states = np.concatenate(frame_queue, axis=2)
-                dqn_states = np.stack(dqn_queue,axis=2)
+                dqn_states = np.concatenate(dqn_queue,axis=2)
                 next_states = predictor.generate_output_states(np.expand_dims(observation_states, axis=0))
                 next_state_sequence.append(next_states)
                 action = agent.choose_action(dqn_states)
                 correct_state_sequence.append(encode_action(env.action_space.n,action))
 
-                observation, reward, done, _ = env.step(action) # Take a random action  
-                if done:
-                    print(reward)
+                observation, reward, done, info = env.step(action) # Take a random action  
+                total_reward += reward
                 t = t + 1
 
-            print("Episode {} finished after {} timesteps".format(s, t))
-
+            print("Episode {} finished after {} timesteps with reward {}".format(s, t, total_reward))
 
             np.savez_compressed(rollout_file, next=next_state_sequence, correct=correct_state_sequence)
 
@@ -100,15 +102,16 @@ def generate_agent_episodes(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Create new training data'))
-    parser.add_argument('--env_name', type=str, help='name of environment', default="Pong-v0")
-    parser.add_argument('--total_episodes', type=int, default=100,
+    parser.add_argument('--env_name', type=str, help='name of environment', default="PongDeterministic-v4")
+    parser.add_argument('--total_episodes', type=int, default=50,
                         help='total number of episodes to generate per worker')
-    parser.add_argument('--time_steps', type=int, default=200,
+    parser.add_argument('--time_steps', type=int, default=900,
                         help='how many timesteps at start of episode?')
     parser.add_argument('--render', default=0, type=int,
                         help='render the env as data is generated')
     parser.add_argument('--run_all_envs', action='store_true',
                         help='if true, will ignore env_name and loop over all envs in train_envs variables in config.py')
+    parser.add_argument('--informed', action='store_true')
 
     args = parser.parse_args()
     generate_agent_episodes(args)
