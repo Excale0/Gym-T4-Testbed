@@ -42,8 +42,9 @@ def generate_agent_episodes(args):
 
         # First load the agent and the predictive auto encoder with their weights
         agent = Agent(gamma=0.99, epsilon=0.0, alpha=0.0001,
-                input_dims=(104,80,4), n_actions=6, mem_size=25000,
-                eps_min=0.0, batch_size=32, replace=1000, eps_dec=1e-5)
+                input_dims=(104,80,4), n_actions=env.action_space.n, mem_size=25000,
+                eps_min=0.0, batch_size=32, replace=1000, eps_dec=1e-5,
+                q_eval_fname='Breakout_q_network.h5', q_target_fname='Breakout_q_next.h5')
         agent.load_models()
         predictor = load_world_model(current_env_name,env.action_space.n)
 
@@ -103,15 +104,16 @@ def generate_agent_episodes(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Create new training data'))
     parser.add_argument('--env_name', type=str, help='name of environment', default="PongDeterministic-v4")
-    parser.add_argument('--total_episodes', type=int, default=50,
+    parser.add_argument('--total_episodes', type=int, default=80,
                         help='total number of episodes to generate per worker')
-    parser.add_argument('--time_steps', type=int, default=900,
+    parser.add_argument('--time_steps', type=int, default=400,
                         help='how many timesteps at start of episode?')
     parser.add_argument('--render', default=0, type=int,
                         help='render the env as data is generated')
     parser.add_argument('--run_all_envs', action='store_true',
                         help='if true, will ignore env_name and loop over all envs in train_envs variables in config.py')
     parser.add_argument('--informed', action='store_true')
+    parser.add_argument('--max_agent', action='store_true')
 
     args = parser.parse_args()
     generate_agent_episodes(args)

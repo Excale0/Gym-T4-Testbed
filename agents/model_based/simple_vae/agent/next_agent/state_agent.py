@@ -37,14 +37,13 @@ class StateAgent():
             return K.sum(K.square(y_true-y_pred))
 
         model.compile(optimizer=optimizer, loss=model_loss, metrics=[model_loss])
-        model.summary()
         return model
     
-    def train(self, input_states, output_label):
+    def train(self, input_states, output_label,epochs):
         self.model.fit(x=input_states,
                        y=output_label,
                        shuffle=True,
-                       epochs=32,
+                       epochs=epochs,
                        batch_size=8)
     
     def set_weights(self, filepath):

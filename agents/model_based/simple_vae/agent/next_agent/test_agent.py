@@ -4,90 +4,137 @@ import os
 import numpy as np
 import cv2
 import gym
+import matplotlib.pyplot as plt
+import time
 from collections import deque
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from world_model.load_world_model import load_world_model
 from utils import preprocess_frame, encode_action, preprocess_frame_dqn
+from simple_dqn import Agent
 
-weights_path = "./agent_weights.h5"
+plt.rcParams.update({'font.size': 18.5})
 
-def test_against_rollout():
-    
-    data_file = "./data/rollout_PongDeterministic-v4/rollout-1.npz"
-    data = np.load(data_file)
-    next_states = data['next']
-    correct = data['correct']
-
-    print(next_states.shape)
-    print(correct.shape)
-
-    agent = StateAgent(6, 'PongDeterministic-v4')
-    agent.set_weights(weights_path)
-
-    correct_count = 0.0
-    total_episodes = 400
-
-    for i in range(total_episodes):
-        current_next = next_states[i]
-        current_correct = correct[i]
-        current_correct = np.expand_dims(current_correct, axis=0)
-        current_next = np.expand_dims(current_next, axis=0)
-
-        prediction = agent.predict(current_next)
-        # print(prediction)
-        #print(current_correct)
-        if np.argmax(prediction[0]) == np.argmax(current_correct):
-            correct_count += 1
-
-        print(correct_count/total_episodes)
-
-
-def test_against_environment(num_runs):
-    env_name = 'PongDeterministic-v4'
+def test_against_environment(env_name,num_runs,agent_name):
     env = gym.make(env_name)
-    env.seed(0)
-
-    agent = StateAgent(6, 'PongDeterministic-v4')
-    agent.set_weights(weights_path)
-
+    # env.seed(0)
+    weights_path = "./agent_weights_pong_max.h5"
     try:
         predictor = load_world_model(env_name, env.action_space.n)
+        if agent_name == 'Next_agent':
+            agent = StateAgent(env.action_space.n, env_name)
+            agent.set_weights(weights_path)
+        elif agent_name == 'DQN':
+            agent = Agent(gamma=0.99, epsilon=0.00, alpha=0.0001,
+                  input_dims=(104,80,4), n_actions=env.action_space.n, mem_size=25000,
+                  eps_min=0.00, batch_size=32, replace=1000, eps_dec=1e-5,
+                  q_eval_fname='Pong_q_network_21.h5', q_target_fname='Pong_q_next_21.h5',
+                  env_name=env_name)
+            agent.load_models()
     except:
         print ("Error loading model, check environment name and action space dimensions")
     
     rewards = []
 
+    start = time.time()
+
+    total_steps = 0.0
     for i in range(num_runs):
         frame_queue = deque(maxlen=4)
 
         observation = env.reset()
         done = False
 
-        init_queue(frame_queue,observation)
-        total_reward = 0.0
+        if agent_name == 'DQN':
+            init_queue(frame_queue,observation,True)
+        else:
+            init_queue(frame_queue,observation)
 
+        total_reward = 0.0
+        frame_count = 0
         while not done:
             observation_states = np.concatenate(frame_queue, axis=2)
-            next_states = predictor.generate_output_states(np.expand_dims(observation_states, axis=0))
-            agent_action = agent.choose_action_from_next_states(np.expand_dims(next_states,axis=0))
-            observation, reward, done, info = env.step(agent_action)
-            
+
+            # Human start of breakout since the next state agent just keeps moving to the left
+            if agent_name == 'Next_agent':
+                if env_name == 'BreakoutDeterministic-v4' and not frame_count:
+                    agent_action = 1
+                else:
+                    next_states = predictor.generate_output_states(np.expand_dims(observation_states, axis=0))
+                    agent_action = agent.choose_action_from_next_states(np.expand_dims(next_states,axis=0))
+            elif agent_name == 'DQN':
+                agent_action = agent.choose_action(observation_states)
+            else:
+                agent_action = env.action_space.sample()
+                
+            observation, reward, done, _ = env.step(agent_action)
+            # print(agent_action)
             total_reward += reward
+            frame_count += 1
+            total_steps += 1
 
             frame_queue.pop()
-            frame_queue.appendleft(preprocess_frame(observation))
+            if agent_name == 'DQN':
+                frame_queue.appendleft(preprocess_frame_dqn(observation))
+            else:
+                frame_queue.appendleft(preprocess_frame(observation))
+
         print("Completed episode {} with reward {}".format(i+1, total_reward))
         rewards.append(total_reward)
+    end = time.time()
+
+    time_taken = (end-start) / total_steps
     
     print("Test complete - Average score: {}    Max score: {}".format(np.average(rewards),np.max(rewards)))
+    return (rewards,time_taken)
+
+def init_queue(queue, observation, dqn=False):
+    for i in range(4):
+        if dqn:
+            queue.append(preprocess_frame_dqn(observation))
+        else:
+            queue.append(preprocess_frame(observation))
+
+def save_graph(env_name, num_runs, timing_steps):
+    reward_dqn, time_dqn = test_against_environment(env_name,num_runs,'DQN')
+    reward_random, _ = test_against_environment(env_name,num_runs,'Random')
+    reward, time_next_agent = test_against_environment(env_name,num_runs,'Next_agent')
+    # reward = [21]
+    # reward_random = [19.5]
+    # reward_dqn = [21]
+    names = ['Random', 'DQN', 'Next State Agent']
+    names_time = ['DQN', 'Next State Agent']
+    scores = [ np.average(i) for i in [reward_random, reward_dqn, reward]]
+    # times = [time_dqn*timing_steps, time_next_agent*timing_steps]
+    plot_scores(env_name, num_runs, names, scores)
+    # plot_time(env_name, num_runs, names_time, times, timing_steps)
     
 
-def init_queue(queue, observation):
-    for i in range(4):
-        queue.append(preprocess_frame(observation))
-    
+
+def plot_scores(env_name, num_runs, names, scores):
+    env_name = env_name.replace('Deterministic-v4','')
+    title = 'Average score in {} ({} games)'.format(env_name,num_runs) 
+    fig, ax = plt.subplots()
+    ax.set_ylabel('Score')
+    ax.bar(names, scores, color=['#7986CB','#64B5F6','#BA68C8'])
+    fig.suptitle(title)
+    fig.savefig('graphs/{}_scores.png'.format(env_name))
+
+def plot_time(env_name, num_runs, names, times, timing_steps):
+    env_name = env_name.replace('Deterministic-v4','')
+    title = 'Average time for {} steps in {}'.format(timing_steps,env_name) 
+    fig, ax = plt.subplots()
+    ax.set_ylabel('Time(seconds)')
+    ax.bar(names,times, color=['#64B5F6','#BA68C8'])
+    fig.suptitle(title)
+    fig.savefig('graphs/{}_times.png'.format(env_name))
+
 
 
 if __name__ == "__main__":
-    test_against_environment(5)
+
+    num_runs = 10
+    env_name = "PongDeterministic-v4"
+    # test_against_environment(env_name, num_runs, 'Next_agent')
+    
+    save_graph(env_name,num_runs,100)

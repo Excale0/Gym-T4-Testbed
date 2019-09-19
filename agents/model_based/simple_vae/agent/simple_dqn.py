@@ -13,8 +13,6 @@ from world_model.load_world_model import load_world_model
 from utils import encode_action
 from collections import deque
 
-ENV_NAME = 'PongDeterministic-v4'
-
 
 class ReplayBuffer(object):
     def __init__(self, max_size, input_shape):
@@ -51,6 +49,7 @@ class ReplayBuffer(object):
         return states, actions, rewards, states_, terminal
 
 def build_dqn(lr, n_actions, input_dims, fc1_dims):
+
     model = Sequential()
     model.add(Conv2D(filters=32, kernel_size=6, strides=2, activation='relu',
                      input_shape=(*input_dims,)))
@@ -68,7 +67,7 @@ class Agent(object):
     def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, replace,
                  input_dims, eps_dec=0.996,  eps_min=0.01,
                  mem_size=1000000, q_eval_fname='Pong_q_network.h5',
-                 q_target_fname='Pong_q_next.h5'):
+                 q_target_fname='Pong_q_next.h5', env_name='PongDeterministic-v4'):
         self.action_space = [i for i in range(n_actions)]
         self.gamma = gamma
         self.epsilon = epsilon
@@ -82,7 +81,7 @@ class Agent(object):
         self.memory = ReplayBuffer(mem_size, input_dims)
         self.q_eval = build_dqn(alpha, n_actions, input_dims, 512)
         self.q_next = build_dqn(alpha, n_actions, input_dims, 512)
-        self.world_model = load_world_model(ENV_NAME, n_actions)
+        self.world_model = load_world_model(env_name, n_actions)
 
     def replace_target_network(self):
         if self.replace is not None and self.learn_step % self.replace == 0:
@@ -191,4 +190,5 @@ class Agent(object):
         dir_path = os.path.dirname(os.path.abspath(__file__))
         self.q_eval = load_model(os.path.join(dir_path, self.q_eval_model_file))
         self.q_nexdt = load_model(os.path.join(dir_path, self.q_target_model_file))
+        # print(os.path.join(dir_path, self.q_target_model_file))
         print('... loading models ...')
