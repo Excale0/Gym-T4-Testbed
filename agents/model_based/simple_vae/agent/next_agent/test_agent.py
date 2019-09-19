@@ -13,7 +13,10 @@ from world_model.load_world_model import load_world_model
 from utils import preprocess_frame, encode_action, preprocess_frame_dqn
 from simple_dqn import Agent
 
-plt.rcParams.update({'font.size': 18.5})
+plt.rcParams.update({'font.size': 35})
+plt.rcParams['figure.dpi'] = 400
+plt.rcParams['savefig.dpi'] = 400
+plt.rcParams['figure.figsize'] = [16.0,12.0]
 
 def test_against_environment(env_name,num_runs,agent_name):
     env = gym.make(env_name)
@@ -99,15 +102,12 @@ def save_graph(env_name, num_runs, timing_steps):
     reward_dqn, time_dqn = test_against_environment(env_name,num_runs,'DQN')
     reward_random, _ = test_against_environment(env_name,num_runs,'Random')
     reward, time_next_agent = test_against_environment(env_name,num_runs,'Next_agent')
-    # reward = [21]
-    # reward_random = [19.5]
-    # reward_dqn = [21]
     names = ['Random', 'DQN', 'Next State Agent']
     names_time = ['DQN', 'Next State Agent']
     scores = [ np.average(i) for i in [reward_random, reward_dqn, reward]]
-    # times = [time_dqn*timing_steps, time_next_agent*timing_steps]
+    times = [time_dqn*timing_steps, time_next_agent*timing_steps]
     plot_scores(env_name, num_runs, names, scores)
-    # plot_time(env_name, num_runs, names_time, times, timing_steps)
+    plot_time(env_name, num_runs, names_time, times, timing_steps)
     
 
 
@@ -129,12 +129,20 @@ def plot_time(env_name, num_runs, names, times, timing_steps):
     fig.suptitle(title)
     fig.savefig('graphs/{}_times.png'.format(env_name))
 
+def test_plot():
+    env_name = 'PonsgDeterministic-v4'
+    num_runs = 5
+    names = ['Random', 'DQN', 'Next State Agent']
+    scores = [21,15,-21]
+    plot_scores(env_name, num_runs, names, scores)
+
+
 
 
 if __name__ == "__main__":
 
     num_runs = 10
     env_name = "PongDeterministic-v4"
-    # test_against_environment(env_name, num_runs, 'Next_agent')
     
     save_graph(env_name,num_runs,100)
+    # test_plot()
