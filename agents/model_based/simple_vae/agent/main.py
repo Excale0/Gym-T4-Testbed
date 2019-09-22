@@ -6,13 +6,13 @@ from utils import preprocess_frame_dqn
 
 if __name__ == '__main__':
     env = gym.make('BreakoutDeterministic-v4')
-    # env.seed(0)
+    env.seed(0)
 
     num_games = 8000
     # terminating_steps = 250000
-    load_checkpoint = True
+    load_checkpoint = False
     best_score = 0
-    agent = Agent(gamma=0.99, epsilon=0.02, alpha=0.0001,
+    agent = Agent(gamma=0.99, epsilon=1.0, alpha=0.0001,
                   input_dims=(104,80,4), n_actions=env.action_space.n, mem_size=25000,
                   eps_min=0.02, batch_size=32, replace=1000, eps_dec=1e-5,
                   q_eval_fname='Breakout_q_network.h5', q_target_fname='Breakout_q_next.h5')
@@ -63,3 +63,4 @@ if __name__ == '__main__':
             best_score = avg_score
 
         eps_history.append(agent.epsilon)
+    

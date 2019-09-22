@@ -1,10 +1,16 @@
 import os
+import sys
 import numpy as np
 import gym
 import cv2
 import random
 from collections import deque
 from PIL import Image
+
+sys.path.insert(1, os.path.join(sys.path[0], '..'))
+
+from utils import preprocess_frame_dqn, preprocess_frame
+from agent.load_dqn import load_dqn
 
 #import matplotlib.pyplot as plt
 
@@ -23,6 +29,7 @@ def main(args):
     env_name = args.env_name
     total_episodes = args.total_episodes
     time_steps = args.time_steps
+    trained = args.trained
     # action_refresh_rate = args.action_refresh_rate
 
     envs_to_generate = [env_name]
@@ -34,6 +41,9 @@ def main(args):
         env.seed(0)
 
         s = 0
+
+        if trained:
+            agent = load_dqn(env)
         
         while s < total_episodes:
             
@@ -41,7 +51,7 @@ def main(args):
 
             observation = env.reset()
             frame_queue = deque(maxlen=4)
-            
+            dqn_queue = deque(maxlen=4)
 
             t = 0
 
@@ -49,11 +59,9 @@ def main(args):
             action_sequence = []
             next_sequence = []
 
-            while t < time_steps:  
-                action = env.action_space.sample()
-                
+            while t < time_steps:                  
+
                 # convert image to greyscale, downsize
-                
                 converted_obs = preprocess_frame(observation)
                 
                 if t == 0:
@@ -65,6 +73,20 @@ def main(args):
                 
                 stacked_state = np.concatenate(frame_queue, axis=2)
                 obs_sequence.append(stacked_state)
+
+                if trained:
+                    dqn_obs = preprocess_frame_dqn(observation)
+                    if t == 0:
+                        for i in range(4):
+                            dqn_queue.append(dqn_obs)
+                    else:
+                        dqn_queue.pop()
+                        dqn_queue.appendleft(dqn_obs)
+                    stacked = np.concatenate(dqn_queue, axis=2)
+                    action = agent.choose_action(stacked)
+                else:
+                    action = env.action_space.sample()
+
                 action_sequence.append(encode_action(env.action_space.n,action))
 
                 observation, _, _, _ = env.step(action) # Take a random action  
@@ -87,19 +109,10 @@ def encode_action(size, action):
     action_vector[action] = 1
     return action_vector
 
-def preprocess_frame(frame):
-    # convert image to greyscale, downsize
-    converted_obs = Image.fromarray(frame, 'RGB')
-    # converted_obs = converted_obs.convert('L')  # to gray
-    converted_obs = converted_obs.resize((80, 104), Image.ANTIALIAS)
-    # converted_obs = converted_obs.crop((0,20,84,104))
-    converted_obs = np.array(converted_obs).astype('float')
-    converted_obs = np.pad(converted_obs,((0,0),(0,24),(0,0)), 'constant')
-    return converted_obs/255.
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Create new training data'))
     parser.add_argument('--env_name', type=str, help='name of environment', default="Pong-v0")
+    parser.add_argument('--trained', type=bool)
     parser.add_argument('--total_episodes', type=int, default=200,
                         help='total number of episodes to generate per worker')
     parser.add_argument('--time_steps', type=int, default=200,
