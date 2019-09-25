@@ -83,7 +83,7 @@ class Agent(object):
         self.memory = ReplayBuffer(mem_size, input_dims)
         self.q_eval = build_dqn(alpha, n_actions, input_dims, 512)
         self.q_next = build_dqn(alpha, n_actions, input_dims, 512)
-        # self.world_model = load_world_model(env_name, n_actions)
+        self.world_model = load_world_model(env_name, n_actions)
 
     def replace_target_network(self):
         if self.replace is not None and self.learn_step % self.replace == 0:
@@ -103,61 +103,61 @@ class Agent(object):
 
         return action
 
-    # def choose_action_aggregated(self, observation):
-    #     if np.random.random() < self.epsilon:
-    #         action_to_take = np.random.choice(self.action_space)
-    #     else:
-    #         observations = deque(maxlen=4)
-    #         state = np.array([observation], copy=False, dtype=np.float32)
-    #         aggregated_qs = np.zeros(len(self.action_space), dtype=np.float32)
+    def choose_action_aggregated(self, observation):
+        if np.random.random() < self.epsilon:
+            action_to_take = np.random.choice(self.action_space)
+        else:
+            observations = deque(maxlen=4)
+            state = np.array([observation], copy=False, dtype=np.float32)
+            aggregated_qs = np.zeros(len(self.action_space), dtype=np.float32)
 
-    #         # Get Q values for current state
+            # Get Q values for current state
 
-    #         policy = self.q_eval.predict(state)
+            policy = self.q_eval.predict(state)
 
-    #         actions_explored = 0
-    #         # Predict the next state for every action
-    #         for action in self.action_space:
+            actions_explored = 0
+            # Predict the next state for every action
+            for action in self.action_space:
 
-    #             # need to one hot encode and expand dims for world model prediction
-    #             ohe_action = encode_action(len(self.action_space), action)
-    #             ohe_action = np.expand_dims(ohe_action, axis=0)     
+                # need to one hot encode and expand dims for world model prediction
+                ohe_action = encode_action(len(self.action_space), action)
+                ohe_action = np.expand_dims(ohe_action, axis=0)     
 
-    #             predicted_next = self.world_model.predict(state, ohe_action)
-    #             predicted_next = predicted_next[0,:,:,:]
+                predicted_next = self.world_model.predict(state, ohe_action)
+                predicted_next = predicted_next[0,:,:,:]
 
-    #             observations = np.split(observation, 4, axis=2)
+                observations = np.split(observation, 4, axis=2)
 
-    #             # if exploring first action then remove last frame and add predicted frame to the start
-    #             # if exploring subsequent actions remove the previous prediction (first frame) and replace with new prediction
-    #             if actions_explored == 0:
-    #                 observations.pop()
-    #                 observations.insert(0,predicted_next)
-    #             else:
-    #                 observations.pop(0)
-    #                 observations.insert(0,predicted_next)
+                # if exploring first action then remove last frame and add predicted frame to the start
+                # if exploring subsequent actions remove the previous prediction (first frame) and replace with new prediction
+                if actions_explored == 0:
+                    observations.pop()
+                    observations.insert(0,predicted_next)
+                else:
+                    observations.pop(0)
+                    observations.insert(0,predicted_next)
 
-    #             stacked_frames = np.concatenate(observations,axis=2)
-    #             new_state = np.array([stacked_frames], copy=False, dtype=np.float32)
+                stacked_frames = np.concatenate(observations,axis=2)
+                new_state = np.array([stacked_frames], copy=False, dtype=np.float32)
 
-    #             # Get Q values for predicted state
-    #             next_policy = self.q_eval.predict(new_state)
+                # Get Q values for predicted state
+                next_policy = self.q_eval.predict(new_state)
 
-    #             # Aggregate Q values
-    #             aggregated_policy = policy + self.gamma*next_policy
+                # Aggregate Q values
+                aggregated_policy = policy + self.gamma*next_policy
 
-    #             # Find the highest q value from policy
-    #             max_q = np.max(aggregated_policy)
+                # Find the highest q value from policy
+                max_q = np.max(aggregated_policy)
 
-    #             # Store as max aggregated q for taking action
-    #             aggregated_qs[action] = max_q
+                # Store as max aggregated q for taking action
+                aggregated_qs[action] = max_q
 
-    #             actions_explored += 1
+                actions_explored += 1
             
-    #         # Take the action which lead to the highest aggregated q
-    #         action_to_take = np.argmax(aggregated_qs)
+            # Take the action which lead to the highest aggregated q
+            action_to_take = np.argmax(aggregated_qs)
 
-    #     return action_to_take
+        return action_to_take
 
     def learn(self):
         if self.memory.mem_cntr > self.batch_size:

@@ -5,23 +5,28 @@ import numpy as np
 import os
 import imageio
 from generate_gif import create_gif
+from load_world_model import load_world_model
 
 
 def diff(original,predicted):
     return abs(original - predicted)
     
-IMAGE_FOLDER = './images/'
+env_name = sys.argv[1]   
 
-env_name = sys.argv[1]
+IMAGE_FOLDER = './images/%s/' % env_name
 
-data_file = './data/world_models/' + 'rollout_' + env_name + '/rollout-100.npz'
+if not os.path.exists(IMAGE_FOLDER):
+    os.umask(0o000)
+    os.makedirs(IMAGE_FOLDER)
+
+# right now its only using trained rollouts 
+data_file = './data/world_models/' + 'trained/rollout_' + env_name + '/rollout-100.npz'
 
 obs_data = np.load(data_file)['obs']
 action_data = np.load(data_file)['actions']
 next_data = np.load(data_file)['next_frame']
 
-cvae = CVAE(len(action_data[0]))
-cvae.set_weights('./cvae_weights_mult_' + env_name + '.h5')
+cvae = load_world_model(env_name, len(action_data[0])) 
 
 for i in range(len(obs_data)):
     obs = obs_data[i]
@@ -29,7 +34,7 @@ for i in range(len(obs_data)):
     ground_truth = next_data[i]*255.
     # print(ground_truth.shape)
 
-    current_frame = obs[:, :, :]*255.
+    current_frame = obs[:, :, :3]*255.
     # current_frame = np.expand_dims(current_frame, axis=3)
 
     obs = np.expand_dims(obs, axis=0)
@@ -42,7 +47,7 @@ for i in range(len(obs_data)):
     # print(predicted_image.shape)
 
     triple = np.concatenate(
-        (predicted_image, ground_truth, diff(predicted_image, ground_truth)), axis=1)
+        (current_frame, predicted_image, ground_truth, diff(predicted_image, ground_truth)), axis=1)
     
     if i == 50:
         cv2.imwrite("./{}_50.jpg".format(env_name), triple)
