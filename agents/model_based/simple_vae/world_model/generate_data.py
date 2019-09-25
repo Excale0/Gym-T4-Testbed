@@ -20,17 +20,21 @@ ROLLOUT_DIR = './data/world_models/'
 
 def main(args):
 
-    full_path = ROLLOUT_DIR + 'rollout_' + args.env_name
-
-    if not os.path.exists(full_path):
-        os.umask(0o000)
-        os.makedirs(full_path)
 
     env_name = args.env_name
     total_episodes = args.total_episodes
     time_steps = args.time_steps
-    trained = args.trained
+    trained = args.method == "trained"
     # action_refresh_rate = args.action_refresh_rate
+
+    if trained:
+        full_path = ROLLOUT_DIR + 'trained/rollout_' + args.env_name
+    else:
+        full_path = ROLLOUT_DIR + 'random/rollout_' + args.env_name
+
+    if not os.path.exists(full_path):
+        os.umask(0o000)
+        os.makedirs(full_path)
 
     envs_to_generate = [env_name]
 
@@ -112,7 +116,7 @@ def encode_action(size, action):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Create new training data'))
     parser.add_argument('--env_name', type=str, help='name of environment', default="Pong-v0")
-    parser.add_argument('--trained', type=bool)
+    parser.add_argument('--method', type=str, default="trained")
     parser.add_argument('--total_episodes', type=int, default=200,
                         help='total number of episodes to generate per worker')
     parser.add_argument('--time_steps', type=int, default=200,

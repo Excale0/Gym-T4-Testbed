@@ -65,16 +65,28 @@ def main(args):
     N = int(args.N)
     epochs = int(args.epochs)
     action_dim = action_space_dimension(args.env_name)
+    trained = args.method == "trained"
+
     cvae = CVAE(action_dim)
-    # return
-    dir_name = DIR_NAME + 'rollout_' + args.env_name + '/'
-    weights_name = './cvae_weights_mult_' + args.env_name + '.h5'
+    
+    if trained:
+      dir_name = DIR_NAME + 'trained/rollout_' + args.env_name + '/'
+      model_dir = './models/trained_rollout'
+      weights_name = '%s/cvae_weights_mult_%s.h5' % (model_dir, args.env_name)
+    else:
+      dir_name = DIR_NAME + 'random/rollout_' + args.env_name + '/'
+      model_dir = './models/random_rollout'
+      weights_name = '%s/cvae_weights_mult_%s.h5' % (model_dir, args.env_name)
+
+    if not os.path.exists(model_dir):
+        os.umask(0o000)
+        os.makedirs(model_dir)
 
     if not new_model:
         try:
             cvae.set_weights(weights_name)
         except:
-            print("Either set --new_model or ensure %s/weights.h5 exists" % model_dir)
+            print("Either set --new_model or ensure %s exists" % weights_name)
             raise
 
     try:
@@ -98,6 +110,7 @@ if __name__ == "__main__":
   parser.add_argument('--new_model', action='store_true', help='start a new model from scratch?')
   parser.add_argument('--epochs', default = 10, help='number of epochs to train for')
   parser.add_argument('--env_name', type=str, help='name of environment', default="Breakout-v0")
+  parser.add_argument('--method', type=str, help='type of rollout trained or random', default="trained")
   args = parser.parse_args()
   
   main(args)
