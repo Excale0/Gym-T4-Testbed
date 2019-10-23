@@ -6,9 +6,9 @@ from keras.models import Model
 from keras.optimizers import Adam
 import keras.backend as K
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-from world_model.load_world_model import load_world_model
+from predictive_model.load_predictive_model import load_predictive_model
 from utils import encode_action, preprocess_frame
-from world_model.simple_vae import CVAE
+from predictive_model.simple_vae import CVAE
 
 INPUT_DIM = (80,104,1)
 
@@ -16,7 +16,7 @@ class StateAgent():
     def __init__(self,action_dim,env_name):
         self.action_dim = action_dim
         self.model = self.build_model(action_dim)
-        self.world_model = load_world_model(env_name,action_dim)
+        self.predictive_model = load_predictive_model(env_name,action_dim)
 
     def build_model(self, action_dim):
         frame_input = Input(shape=(INPUT_DIM[1],INPUT_DIM[0],INPUT_DIM[2]*self.action_dim))
@@ -53,7 +53,7 @@ class StateAgent():
         self.model.save_weights(filepath)
 
     def predict(self, input_states):
-        # next_states = self.world_model.generate_output_states(input_state)
+        # next_states = self.predictive_model.generate_output_states(input_state)
         return self.model.predict(input_states)
     
     def choose_action_from_next_states(self, next_states):

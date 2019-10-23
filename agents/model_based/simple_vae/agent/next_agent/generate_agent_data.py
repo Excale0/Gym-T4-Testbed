@@ -13,7 +13,7 @@ from PIL import Image
 import argparse
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
-from world_model.load_world_model import load_world_model
+from predictive_model.load_predictive_model import load_predictive_model
 from utils import preprocess_frame, encode_action, preprocess_frame_dqn
 from simple_dqn import Agent
 
@@ -46,7 +46,7 @@ def generate_agent_episodes(args):
                 eps_min=0.0, batch_size=32, replace=1000, eps_dec=1e-5,
                 q_eval_fname='Breakout_q_network.h5', q_target_fname='Breakout_q_next.h5')
         agent.load_models()
-        predictor = load_world_model(current_env_name,env.action_space.n)
+        predictor = load_predictive_model(current_env_name,env.action_space.n)
 
         s = 0
         
