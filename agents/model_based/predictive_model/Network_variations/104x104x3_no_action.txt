@@ -1,0 +1,54 @@
+ vae_x = Input(shape=self.input_dim, name='observation_input')       # 84x84x4
+        
+        ####################################################################
+        #                        Step 1: CONVOLUTION                       #
+        ####################################################################
+
+        h = Conv2D(32, 6, strides=2, activation='relu')(vae_x)              # 40x40x32
+        h1 = Conv2D(64, 6, strides=2, activation='relu')(h)                 # 18x18x64
+        h2 = Conv2D(128, 6, strides=2, activation='relu')(h1)               # 7x7x128
+        h3 = Conv2D(128, 4, strides=2, activation='relu')(h2)               # 2x2x256
+        h4 = Flatten()(h3)                                                  # 1024
+
+
+        ####################################################################
+        #                     Step 2: ACTION ENCODING                      #
+        ####################################################################
+
+
+        # action_input = Input(shape=(self.action_dim,), name='action_input')    # 4
+        # action_dense = Dense(DENSE_SIZE, name='action_dense')(action_input)
+        # encoded = Concatenate()([h4, action_input])                     # 1028
+
+
+        ####################################################################
+        #                  Step 3: LATENT SPACE ENCODING                   #
+        ####################################################################
+        
+        # z_mean = Dense(1024, name='z_mean')(h4)                      
+        # z_log_var = Dense(self.z_dim, name='z_log_var')(h4)
+        # z_sigma = Lambda(convert_to_sigma, name='sigma')(z_log_var)                
+        # z = Lambda(sampling, name='sampling')([z_mean, z_sigma])
+
+        # # merge latent space with same action vector that was merged into observation
+        # zc = Concatenate(axis=-1)([z, action_input])
+        # zc = Multiply([z,action_dense])
+
+        
+        ####################################################################
+        #                     Step 4: DECONVOLUTION                        #
+        ####################################################################
+
+        # decoder_dense = Dense(DENSE_SIZE)(h4)
+        # decoder_reshape = Reshape((1,1,1024), name='unflatten')(decoder_dense)
+        # action_transformation = multiply([h4, action_dense])
+        decoder_reshape = Reshape((3,3,128), name='unflatten')(h4)
+        decoder = Conv2DTranspose(128, 5, strides=2, activation='relu')(decoder_reshape)
+        decoder_2 = Conv2DTranspose(64, 6, strides=2, activation ='relu')(decoder)
+        # padding = ZeroPadding2D(padding=(1,0))(decoder_2)        
+        decoder_3 = Conv2DTranspose(32, 7, strides=2, activation ='relu')(decoder_2)
+        # padding_2 = ZeroPadding2D(padding=(3,1))(decoder_3)
+        # decoder_4 = Conv2DTranspose(32, 6, strides=2, activation ='relu')(decoder_3) 
+        decoder_out = Conv2DTranspose(3, 8, strides=2, activation='sigmoid')(decoder_3)
+        
+        vae_full = Model(vae_x,decoder_out)
