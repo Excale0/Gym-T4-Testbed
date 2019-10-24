@@ -68,8 +68,8 @@ def build_dqn(lr, n_actions, input_dims, fc1_dims):
 class Agent(object):
     def __init__(self, alpha, gamma, n_actions, epsilon, batch_size, replace,
                  input_dims, eps_dec=0.996,  eps_min=0.01,
-                 mem_size=1000000, q_eval_fname='BreakoutDeterministic-v4_q_network.h5',
-                 q_target_fname='BreakoutDeterministic-v4_q_next.h5', env_name='BreakoutDeterministic-v4'):
+                 mem_size=1000000,env_name='BreakoutDeterministic-v4'):
+                
         self.action_space = [i for i in range(n_actions)]
         self.gamma = gamma
         self.epsilon = epsilon
@@ -77,16 +77,20 @@ class Agent(object):
         self.eps_min = eps_min
         self.batch_size = batch_size
         self.replace = replace
-        self.q_target_model_file = os.path.join(MODEL_PATH, q_target_fname)
-        self.q_eval_model_file = os.path.join(MODEL_PATH, q_eval_fname)
+
+        q_eval_name = '%s_q_network.h5' % env_name
+        q_target_name = '%s_q_next.h5' % env_name
+        self.q_eval_model_file = os.path.join(MODEL_PATH, q_eval_name)
+        self.q_target_model_file = os.path.join(MODEL_PATH, q_target_name)
+
         self.learn_step = 0
         self.memory = ReplayBuffer(mem_size, input_dims)
         self.q_eval = build_dqn(alpha, n_actions, input_dims, 512)
-        self.q_next = build_dqn(alpha, n_actions, input_dims, 512)
+        self.q_target = build_dqn(alpha, n_actions, input_dims, 512)
 
     def replace_target_network(self):
         if self.replace is not None and self.learn_step % self.replace == 0:
-            self.q_next.set_weights(self.q_eval.get_weights())
+            self.q_target.set_weights(self.q_eval.get_weights())
 
     def store_transition(self, state, action, reward, new_state, done):
         self.memory.store_transition(state, action, reward, new_state, done)
@@ -109,7 +113,7 @@ class Agent(object):
             self.replace_target_network()
 
             q_eval = self.q_eval.predict(state)
-            q_next = self.q_next.predict(new_state)
+            q_next = self.q_target.predict(new_state)
             q_next[done] = 0.0
 
             q_target = q_eval[:]
@@ -126,10 +130,10 @@ class Agent(object):
 
     def save_models(self):
         self.q_eval.save(self.q_eval_model_file)
-        self.q_next.save(self.q_target_model_file)
+        self.q_target.save(self.q_target_model_file)
         print('... saving models ...')
 
     def load_models(self):
         self.q_eval = load_model(self.q_eval_model_file)
-        self.q_nexdt = load_model(self.q_target_model_file)
+        self.q_target = load_model(self.q_target_model_file)
         print('... loading models ...')

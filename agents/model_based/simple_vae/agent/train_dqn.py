@@ -13,11 +13,10 @@ def main(args):
 
     num_games = 8000
     # terminating_steps = 250000
-    best_score = 0
+    best_score = -21.0
     agent = Agent(gamma=0.99, epsilon=1.0, alpha=0.0001,
                   input_dims=(104,80,4), n_actions=env.action_space.n, mem_size=25000,
-                  eps_min=0.02, batch_size=32, replace=1000, eps_dec=1e-5,
-                  q_eval_fname='%s_q_network.h5' % env_name , q_target_fname='%s_q_next.h5' % env_name, env_name=env_name)
+                  eps_min=0.02, batch_size=32, replace=1000, eps_dec=1e-5, env_name=env_name)
 
     if not new_model:
         try:

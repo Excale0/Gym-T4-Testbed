@@ -7,7 +7,6 @@ import gym
 import matplotlib.pyplot as plt
 import time
 from collections import deque
-from gym.envs.classic_control import rendering
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
 from predictive_model.load_predictive_model import load_predictive_model
@@ -20,34 +19,18 @@ plt.rcParams['figure.dpi'] = 400
 plt.rcParams['savefig.dpi'] = 400
 plt.rcParams['figure.figsize'] = [16.0,12.0]
 
-def repeat_upsample(rgb_array, k=1, l=1, err=[]):
-    # repeat kinda crashes if k/l are zero
-    if k <= 0 or l <= 0: 
-        if not err: 
-            print("Number of repeats must be larger than 0, k: {}, l: {}, returning default array!").format(k, l)
-            err.append('logged')
-        return rgb_array
-
-    # repeat the pixels k times along the y axis and l times along the x axis
-    # if the input image is of shape (m,n,3), the output image will be of shape (k*m, l*n, 3)
-
-    return np.repeat(np.repeat(rgb_array, k, axis=0), l, axis=1)
-
 def test_against_environment(env_name,num_runs,agent_name):
     env = gym.make(env_name)
     # env.seed(0)
-    weights_path = "./agent_weights_pong_max.h5"
     try:
         predictor = load_predictive_model(env_name, env.action_space.n)
         if agent_name == 'Next_agent':
             agent = StateAgent(env.action_space.n, env_name)
-            agent.set_weights(weights_path)
+            agent.set_weights()
         elif agent_name == 'DQN':
             agent = Agent(gamma=0.99, epsilon=0.00, alpha=0.0001,
                   input_dims=(104,80,4), n_actions=env.action_space.n, mem_size=25000,
-                  eps_min=0.00, batch_size=32, replace=1000, eps_dec=1e-5,
-                  q_eval_fname='PongDeterministic-v4_q_network.h5', q_target_fname='PongDeterministic-v4_q_next.h5',
-                  env_name=env_name)
+                  eps_min=0.00, batch_size=32, replace=1000, eps_dec=1e-5, env_name=env_name)
             agent.load_models()
     except:
         print ("Error loading model, check environment name and action space dimensions")
@@ -85,9 +68,7 @@ def test_against_environment(env_name,num_runs,agent_name):
             else:
                 agent_action = env.action_space.sample()
             
-            env.render()
             observation, reward, done, _ = env.step(agent_action)
-            # print(agent_action)
             total_reward += reward
             frame_count += 1
             total_steps += 1
@@ -153,12 +134,10 @@ def test_plot():
     plot_scores(env_name, num_runs, names, scores)
 
 
-
-
 if __name__ == "__main__":
 
-    num_runs = 1000
+    num_runs = 10
     env_name = "PongDeterministic-v4"
 
-    reward, time_next_agent = test_against_environment(env_name,num_runs,'Next_agent')
+    save_graph(env_name,num_runs,100)
     # test_plot()

@@ -17,12 +17,15 @@ from predictive_model.load_predictive_model import load_predictive_model
 from utils import preprocess_frame, encode_action, preprocess_frame_dqn
 from simple_dqn import Agent
 
-ROLLOUT_DIR = './data/'
+folder_path = os.path.dirname(os.path.abspath(__file__))
+ROLLOUT_DIR = os.path.join(folder_path, "data")
 
 def generate_agent_episodes(args):
-    full_path = ROLLOUT_DIR + 'rollout_' + args.env_name
+
+    full_path = ROLLOUT_DIR + '/rollout_' + args.env_name
+
     if args.informed:
-        full_path = ROLLOUT_DIR + 'rollout_informed_' + args.env_name
+        full_path = ROLLOUT_DIR + '/rollout_informed_' + args.env_name
     
     if not os.path.exists(full_path):
         os.umask(0o000)
@@ -40,12 +43,12 @@ def generate_agent_episodes(args):
         env = gym.make(current_env_name) # Create the environment
         env.seed(0)
 
-        # First load the agent and the predictive auto encoder with their weights
+        # First load the DQN agent and the predictive auto encoder with their weights
         agent = Agent(gamma=0.99, epsilon=0.0, alpha=0.0001,
                 input_dims=(104,80,4), n_actions=env.action_space.n, mem_size=25000,
-                eps_min=0.0, batch_size=32, replace=1000, eps_dec=1e-5,
-                q_eval_fname='Breakout_q_network.h5', q_target_fname='Breakout_q_next.h5')
+                eps_min=0.0, batch_size=32, replace=1000, eps_dec=1e-5, env_name=current_env_name)
         agent.load_models()
+
         predictor = load_predictive_model(current_env_name,env.action_space.n)
 
         s = 0
@@ -64,11 +67,7 @@ def generate_agent_episodes(args):
             correct_state_sequence = []
             total_reward = 0
             while t < time_steps:  
-                # Get agent to sample action
-                
-                
-                # convert image to greyscale, downsize
-                
+                # preprocess frames for predictive model and dqn                
                 converted_obs = preprocess_frame(observation)
                 converted_obs_dqn = preprocess_frame_dqn(observation)
                 

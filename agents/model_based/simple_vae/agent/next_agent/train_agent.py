@@ -4,6 +4,9 @@ import numpy as np
 import os
 import gym
 
+folder_path = os.path.dirname(os.path.abspath(__file__))
+ROLLOUT_DIR = os.path.join(folder_path, "data")
+
 def action_space_dimension(env_name):
     return gym.make(env_name).action_space.n
 
@@ -30,8 +33,6 @@ def import_data(episodes, action_dim, dir_name):
             action_data = np.load(dir_name + file)['correct']
             next_data = np.load(dir_name + file)['next']
 
-
-
             next_states[idx:(idx + time_steps), :, :, :] = next_data
             correct_state[idx:(idx + time_steps), :] = action_data
 
@@ -52,7 +53,7 @@ def import_data(episodes, action_dim, dir_name):
 
 
 def main(args):
-    dir_name = "./data/rollout_informed_" + args.env_name +"/"
+    dir_name = ROLLOUT_DIR + "/rollout_informed_" + args.env_name + "/"
     # new_model = args.new_model
     episodes = int(args.N)
     action_dim = action_space_dimension(args.env_name)
@@ -65,7 +66,7 @@ def main(args):
         raise
     
     agent.train(next_states,correct_state,32)
-    agent.save_weights("./agent_weights_breakout.h5")
+    agent.save_weights()
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser(description=('Train agent'))

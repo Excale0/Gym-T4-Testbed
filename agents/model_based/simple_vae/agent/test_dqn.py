@@ -15,8 +15,7 @@ def main(args):
     best_score = 0
     agent = Agent(gamma=0.99, epsilon=0.0, alpha=0.0001,
                   input_dims=(104,80,4), n_actions=env.action_space.n, mem_size=25000,
-                  eps_min=0.02, batch_size=32, replace=1000, eps_dec=1e-5,
-                  q_eval_fname='%s_q_network.h5' % env_name, q_target_fname='%s_q_next.h5' % env_name, env_name=env_name)
+                  eps_min=0.02, batch_size=32, replace=1000, eps_dec=1e-5, env_name=env_name)
 
     try:
         agent.load_models()
@@ -66,7 +65,7 @@ def main(args):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description=('Train VAE'))
+    parser = argparse.ArgumentParser(description=('Test DQN'))
     parser.add_argument('--env_name', type=str, help='name of environment', default="BreakoutDeterministic-v4")
     args = parser.parse_args()
     main(args)

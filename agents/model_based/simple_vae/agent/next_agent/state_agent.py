@@ -11,12 +11,18 @@ from utils import encode_action, preprocess_frame
 from predictive_model.simple_vae import CVAE
 
 INPUT_DIM = (80,104,1)
+file_path = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(file_path, "models")
+
 
 class StateAgent():
     def __init__(self,action_dim,env_name):
         self.action_dim = action_dim
         self.model = self.build_model(action_dim)
         self.predictive_model = load_predictive_model(env_name,action_dim)
+
+        model_name = '%s_next_agent_weights.h5' % env_name
+        self.model_file = os.path.join(MODEL_PATH, model_name)
 
     def build_model(self, action_dim):
         frame_input = Input(shape=(INPUT_DIM[1],INPUT_DIM[0],INPUT_DIM[2]*self.action_dim))
@@ -46,14 +52,13 @@ class StateAgent():
                        epochs=epochs,
                        batch_size=8)
     
-    def set_weights(self, filepath):
-        self.model.load_weights(filepath)
+    def set_weights(self):
+        self.model.load_weights(self.model_file)
     
-    def save_weights(self, filepath):
-        self.model.save_weights(filepath)
+    def save_weights(self):
+        self.model.save_weights(self.model_file)
 
     def predict(self, input_states):
-        # next_states = self.predictive_model.generate_output_states(input_state)
         return self.model.predict(input_states)
     
     def choose_action_from_next_states(self, next_states):
