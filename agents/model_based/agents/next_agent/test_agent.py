@@ -6,6 +6,7 @@ import cv2
 import gym
 import matplotlib.pyplot as plt
 import time
+import argparse
 from collections import deque
 
 sys.path.insert(1, os.path.join(sys.path[0], '../..'))
@@ -130,7 +131,14 @@ def plot_time(env_name, num_runs, names, times, timing_steps):
 
 if __name__ == "__main__":
 
-    num_runs = 10
-    env_name = "PongDeterministic-v4"
+    parser = argparse.ArgumentParser(description=('Test and plot graphs for next state agent'))
+    parser.add_argument('--env_name', type=str, help='name of environment', default="PongDeterministic-v4")
+    parser.add_argument('--runs', type=int, help='number of game runs to test', default=10)
+    parser.add_argument('--resolution', type=int, help='step resolution for performance graph e.g. 100 = time for 100 steps', default=100)
+    args = parser.parse_args()
 
-    save_graph(env_name,num_runs,100)
+    env_name = args.env_name
+    num_runs = args.runs
+    resolution = args.resolution
+
+    save_graph(env_name,num_runs,resolution)
