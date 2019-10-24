@@ -4,7 +4,7 @@ import keras.backend as K
 from keras.optimizers import Adam
 import numpy as np
 import sys,os
-sys.path.insert(1,os.path.join('../'))
+sys.path.insert(1,os.path.join(sys.path[0], '../'))
 from utils import encode_action, preprocess_frame_bw_next_state
 
 INPUT_DIM = (104,104,12) # 4 stacked frames
@@ -80,8 +80,6 @@ class AutoEncoder():
 
         def vae_loss(y_true, y_pred):
             return vae_r_loss(y_true, y_pred) 
-            # + vae_kl_loss(y_true, y_pred)
-
         
         opti = Adam(lr=LEARNING_RATE)
         vae_full.compile(optimizer=opti, loss = vae_loss,  metrics = [vae_r_loss])

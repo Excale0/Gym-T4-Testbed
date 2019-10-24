@@ -1,4 +1,4 @@
-from simple_vae import CVAE
+from predictive_model import AutoEncoder
 from random import shuffle
 import argparse
 import numpy as np
@@ -70,12 +70,12 @@ def main(args):
     action_dim = action_space_dimension(args.env_name)
     informed = args.informed
 
-    predictive_model = CVAE(action_dim)
+    predictive_model = AutoEncoder(action_dim)
     
     if informed:
-      rollout_dir = ROLLOUT_DIR + '/informed_rollouts/rollout_' + args.env_name + '/'
+      rollout_dir = ROLLOUT_DIR + '/informed_rollout_' + args.env_name + '/'
     else:
-      rollout_dir = ROLLOUT_DIR + 'random/rollout_' + args.env_name + '/'
+      rollout_dir = ROLLOUT_DIR + '/random_rollout_' + args.env_name + '/'
       
     weights_name = '%s/predictive_model_weights_%s.h5' % (MODEL_DIR, args.env_name)
 

@@ -10,7 +10,7 @@ from PIL import Image
 sys.path.insert(1, os.path.join(sys.path[0], '../'))
 
 from utils import encode_action, preprocess_frame_dqn, preprocess_frame
-from agent.load_dqn import load_dqn
+from agents.dqn_agent.load_dqn import load_dqn
 
 #import matplotlib.pyplot as plt
 
@@ -29,9 +29,9 @@ def main(args):
     # action_refresh_rate = args.action_refresh_rate
 
     if informed:
-        full_path = ROLLOUT_DIR + '/informed_rollouts/rollout_' + args.env_name
+        full_path = ROLLOUT_DIR + '/informed_rollout_' + args.env_name
     else:
-        full_path = ROLLOUT_DIR + '/random_rollouts/rollout_' + args.env_name
+        full_path = ROLLOUT_DIR + '/random_rollout_' + args.env_name
 
     if not os.path.exists(full_path):
         os.umask(0o000)
@@ -109,13 +109,14 @@ def main(args):
         env.close()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=('Create new training data'))
+    parser = argparse.ArgumentParser(description=('Create new training data for predictive model'))
     parser.add_argument('--env_name', type=str, help='name of environment', default="PongDeterministic-v4")
-    parser.add_argument('--informed', action='store_true', help='if true, will use a trained agent to explore instead of random rollouts')
+    parser.add_argument('--informed', action='store_true', 
+                        help='if true, will use a trained agent to explore instead of random rollouts')
     parser.add_argument('--total_episodes', type=int, default=200,
-                        help='total number of episodes to generate per worker')
+                        help='total number of episodes to generate')
     parser.add_argument('--time_steps', type=int, default=200,
-                        help='how many timesteps at start of episode?')
+                        help='number of timesteps in every episode')
 
     args = parser.parse_args()
     main(args)

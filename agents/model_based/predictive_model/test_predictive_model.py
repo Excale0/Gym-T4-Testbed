@@ -26,9 +26,9 @@ def main(args):
         os.makedirs(env_images_folder)
 
     if informed:
-        rollout_file = ROLLOUT_DIR + '/informed_rollouts/rollout_' + args.env_name + '/rollout-5.npz'
+        rollout_file = ROLLOUT_DIR + '/informed_rollout_' + args.env_name + '/rollout-1.npz' # change the file number as needed
     else:
-        rollout_file = ROLLOUT_DIR + 'random/rollout_' + args.env_name + '/rollout-5.npz'
+        rollout_file = ROLLOUT_DIR + '/random_rollout_' + args.env_name + '/rollout-1.npz'
 
     obs_data = np.load(rollout_file)['obs']
     action_data = np.load(rollout_file)['actions']
@@ -40,10 +40,8 @@ def main(args):
         obs = obs_data[i]
         action = action_data[i]
         ground_truth = next_data[i]*255.
-        # print(ground_truth.shape)
 
         current_frame = obs[:, :, :3]*255.
-        # current_frame = np.expand_dims(current_frame, axis=3)
 
         obs = np.expand_dims(obs, axis=0)
         action = np.expand_dims(action, axis=0)
