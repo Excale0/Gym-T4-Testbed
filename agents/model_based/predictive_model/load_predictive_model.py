@@ -1,7 +1,6 @@
 import os
 import sys
 
-sys.path.insert(1, os.path.join(sys.path[0], '../'))
 from predictive_model.predictive_model import AutoEncoder
 
 def load_predictive_model(env_name, n_actions):
