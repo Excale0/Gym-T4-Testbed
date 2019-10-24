@@ -4,6 +4,7 @@ import keras.backend as K
 from keras.optimizers import Adam
 import numpy as np
 import sys,os
+
 sys.path.insert(1,os.path.join(sys.path[0], '../'))
 from utils import encode_action, preprocess_frame_bw_next_state
 

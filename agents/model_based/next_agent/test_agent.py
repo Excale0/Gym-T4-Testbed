@@ -4,15 +4,16 @@ import os
 import numpy as np
 import cv2
 import gym
+import argparse
 import matplotlib.pyplot as plt
 import time
 import argparse
 from collections import deque
 
-sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+sys.path.insert(1, os.path.join(sys.path[0], '../'))
 from predictive_model.load_predictive_model import load_predictive_model
 from utils import preprocess_frame, encode_action, preprocess_frame_dqn
-from agents.dqn_agent.simple_dqn import Agent
+from dqn_agent.simple_dqn import Agent
 
 parent_dir = os.path.dirname(os.path.abspath(__file__))
 GRAPH_DIR = os.path.join(parent_dir, "graphs")
@@ -130,7 +131,6 @@ def plot_time(env_name, num_runs, names, times, timing_steps):
     fig.savefig(GRAPH_DIR + '/{}_times.png'.format(env_name))
 
 if __name__ == "__main__":
-
     parser = argparse.ArgumentParser(description=('Test and plot graphs for next state agent'))
     parser.add_argument('--env_name', type=str, help='name of environment', default="PongDeterministic-v4")
     parser.add_argument('--runs', type=int, help='number of game runs to test', default=10)

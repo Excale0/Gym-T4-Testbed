@@ -12,10 +12,10 @@ from collections import deque
 from PIL import Image
 import argparse
 
-sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+sys.path.insert(1, os.path.join(sys.path[0], '../'))
 from predictive_model.load_predictive_model import load_predictive_model
 from utils import preprocess_frame, encode_action, preprocess_frame_dqn
-from agents.dqn_agent.simple_dqn import Agent
+from dqn_agent.simple_dqn import Agent
 
 folder_path = os.path.dirname(os.path.abspath(__file__))
 ROLLOUT_DIR = os.path.join(folder_path, "data")

@@ -5,12 +5,16 @@ import numpy as np
 import os
 import imageio
 from generate_gif import create_gif
-from load_predictive_model import load_predictive_model
 
 PARENT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROLLOUT_DIR = os.path.join(PARENT_DIR, "data")
 IMAGE_DIR = os.path.join(PARENT_DIR, "images")
 
+# Need to insert parent folder in positiion 0 of path here instead of 1 so that the load_predictive_model import 
+# works in this script and in next_agent/generate_agent_date.py
+sys.path.insert(0, os.path.join(sys.path[0], '../'))
+
+from load_predictive_model import load_predictive_model
 
 def diff(original,predicted):
     return abs(original - predicted)
@@ -60,8 +64,6 @@ def main(args):
         cv2.imwrite(env_images_folder + '/%03d.png' % i, triple)
 
     create_gif(env_images_folder, env_name)
-
-env_name = sys.argv[1]   
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Test predictive model'))

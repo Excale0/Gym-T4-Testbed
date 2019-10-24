@@ -7,7 +7,11 @@ import gym
 
 file_path = os.path.dirname(os.path.abspath(__file__))
 ROLLOUT_DIR = os.path.join(file_path, "data")
-MODEL_DIR = os.path.join(file_path, "models")
+MODEL_DIR = os.path.join(file_path, "models/")
+
+if not os.path.exists(MODEL_DIR):
+  os.umask(0o000)
+  os.makedirs(MODEL_DIR)
 
 M=200
 
@@ -77,7 +81,7 @@ def main(args):
     else:
       rollout_dir = ROLLOUT_DIR + '/random_rollout_' + args.env_name + '/'
       
-    weights_name = '%s/predictive_model_weights_%s.h5' % (MODEL_DIR, args.env_name)
+    weights_name = MODEL_DIR + 'predictive_model_weights_%s.h5' % args.env_name
 
     if not new_model:
         try:

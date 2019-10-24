@@ -10,7 +10,7 @@ from PIL import Image
 sys.path.insert(1, os.path.join(sys.path[0], '../'))
 
 from utils import encode_action, preprocess_frame_dqn, preprocess_frame
-from agents.dqn_agent.load_dqn import load_dqn
+from dqn_agent.load_dqn import load_dqn
 
 #import matplotlib.pyplot as plt
 

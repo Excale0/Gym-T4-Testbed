@@ -8,13 +8,13 @@ from pathlib import Path
 from collections import deque
 
 
-parent_path = os.path.join(sys.path[0], '../../')
+parent_path = os.path.join(sys.path[0], '../')
 sys.path.insert(1, parent_path)
 
 from utils import encode_action
 
 file_path = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(file_path, "models")
+MODEL_PATH = os.path.join(file_path, "models/")
 
 class ReplayBuffer(object):
     def __init__(self, max_size, input_shape):
@@ -80,6 +80,11 @@ class Agent(object):
 
         q_eval_name = '%s_q_network.h5' % env_name
         q_target_name = '%s_q_next.h5' % env_name
+
+        if not os.path.exists(MODEL_PATH):
+            os.umask(0o000)
+            os.makedirs(MODEL_PATH)
+
         self.q_eval_model_file = os.path.join(MODEL_PATH, q_eval_name)
         self.q_target_model_file = os.path.join(MODEL_PATH, q_target_name)
 

@@ -6,12 +6,12 @@ from keras.models import Model
 from keras.optimizers import Adam
 import keras.backend as K
 
-sys.path.insert(1, os.path.join(sys.path[0], '../..'))
+sys.path.insert(1, os.path.join(sys.path[0], '../'))
 from predictive_model.load_predictive_model import load_predictive_model
 
 INPUT_DIM = (80,104,1)
 file_path = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(file_path, "models")
+MODEL_PATH = os.path.join(file_path, "models/")
 
 
 class StateAgent():
@@ -19,6 +19,10 @@ class StateAgent():
         self.action_dim = action_dim
         self.model = self.build_model(action_dim)
         self.predictive_model = load_predictive_model(env_name,action_dim)
+
+        if not os.path.exists(MODEL_PATH):
+            os.umask(0o000)
+            os.makedirs(MODEL_PATH)
 
         model_name = '%s_next_agent_weights.h5' % env_name
         self.model_file = os.path.join(MODEL_PATH, model_name)
