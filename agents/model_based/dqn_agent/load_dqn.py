@@ -1,6 +1,6 @@
 import os
 import sys
-from agents.dqn_agent.simple_dqn import Agent
+from dqn_agent.simple_dqn import Agent
 
 def load_dqn(env):
     env_name = env.unwrapped.spec.id

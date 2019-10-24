@@ -78,6 +78,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=('Train DQN'))
     parser.add_argument('--env_name', type=str, help='name of environment', default="PongDeterministic-v4")
     parser.add_argument('--new_model', action='store_true', help='if selected, trains a new DQN model')
-    parser.add_argument('--num_games', type=str, help='number of games to train on', default=1000)
+    parser.add_argument('--num_games', type=int, help='number of games to train on', default=1000)
     args = parser.parse_args()
     main(args)
