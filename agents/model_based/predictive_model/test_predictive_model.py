@@ -61,8 +61,6 @@ def main(args):
 
     create_gif(env_images_folder, env_name)
 
-env_name = sys.argv[1]   
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=('Test predictive model'))
     parser.add_argument('--env_name', type=str, help='name of environment', default="PongDeterministic-v4")
